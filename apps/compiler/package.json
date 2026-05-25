@@ -1,0 +1,22 @@
+{
+  "name": "compiler",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nitro dev",
+    "build": "nitro build",
+    "start": "node .output/server/index.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/compiler-client": "workspace:*",
+    "h3": "^2.0.1-rc.8",
+    "nitro": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

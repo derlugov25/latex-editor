@@ -1,0 +1,39 @@
+{
+  "name": "@workspace/collab",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@liveblocks/client": "^2.21.4",
+    "@liveblocks/react": "^2.21.4",
+    "@liveblocks/yjs": "^2.21.4",
+    "y-monaco": "^0.1.6",
+    "y-protocols": "^1.0.6",
+    "yjs": "^13.6.20"
+  },
+  "peerDependencies": {
+    "monaco-editor": "*",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.10",
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "eslint": "^9.39.2",
+    "monaco-editor": "^0.53.0",
+    "react": "^19.2.4",
+    "typescript": "^5.9.3"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./room": "./src/room.tsx",
+    "./yjs": "./src/use-yjs.ts",
+    "./monaco-binding": "./src/monaco-binding.ts",
+    "./types": "./src/types.ts"
+  }
+}

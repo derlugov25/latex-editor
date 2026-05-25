@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server"
+
+/** Server-side compiler URL (not exposed to the browser). */
+function compilerServiceUrl(): string {
+  return (
+    process.env.COMPILER_URL ??
+    process.env.NEXT_PUBLIC_COMPILER_URL ??
+    "http://127.0.0.1:3001"
+  )
+}
+
+/**
+ * Proxy LaTeX compilation to the Nitro compiler service on the same origin.
+ * Avoids cross-origin fetch issues (e.g. Cursor's embedded browser blocking :3001).
+ */
+export async function POST(request: Request) {
+  const body = await request.text()
+  let upstream: Response
+  try {
+    upstream = await fetch(`${compilerServiceUrl()}/api/compile`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    })
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error:
+          "Compiler service is unreachable. Run `pnpm dev` and ensure apps/compiler is listening.",
+        detail: (err as Error).message,
+      },
+      { status: 502 },
+    )
+  }
+
+  const contentType =
+    upstream.headers.get("content-type") ?? "application/octet-stream"
+  const data = await upstream.arrayBuffer()
+
+  return new NextResponse(data, {
+    status: upstream.status,
+    headers: { "Content-Type": contentType },
+  })
+}

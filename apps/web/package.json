@@ -9,15 +9,29 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:test-user": "node --env-file=.env.local scripts/seed-test-user.ts"
   },
   "dependencies": {
+    "@liveblocks/node": "^2.21.4",
+    "@liveblocks/react": "^2.21.4",
+    "@liveblocks/yjs": "^2.21.4",
+    "@monaco-editor/react": "^4.7.0",
     "@remixicon/react": "^4.9.0",
+    "@workspace/collab": "workspace:*",
+    "@workspace/compiler-client": "workspace:*",
+    "@workspace/latex-editor": "workspace:*",
+    "@workspace/supabase": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "monaco-editor": "^0.53.0",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "sonner": "^1.7.4",
+    "y-monaco": "^0.1.6",
+    "y-protocols": "^1.0.6",
+    "yjs": "^13.6.20"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
