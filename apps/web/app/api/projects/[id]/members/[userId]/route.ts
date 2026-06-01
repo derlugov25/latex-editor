@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@workspace/supabase/server"
 import { removeMember } from "@workspace/supabase/members"
+import { getProject } from "@workspace/supabase/projects"
 
 export async function DELETE(
   _request: Request,
@@ -11,6 +12,11 @@ export async function DELETE(
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const project = await getProject(supabase, id)
+  if (!project || project.owner_id !== userData.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
   try {

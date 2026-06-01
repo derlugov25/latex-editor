@@ -39,8 +39,9 @@ export function useSnapshot({ projectId, latex, bibtex, enabled }: SnapshotArgs)
       })
         .then((r) => {
           if (r.ok) lastSaved.current = { latex, bibtex }
+          else console.warn("[snapshot] save failed:", r.status)
         })
-        .catch(() => {})
+        .catch((err) => console.warn("[snapshot] network error:", err))
     }, DEBOUNCE_MS)
 
     return () => window.clearTimeout(handle)

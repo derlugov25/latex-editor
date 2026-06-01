@@ -25,9 +25,7 @@ export async function POST(request: Request) {
   } catch (err) {
     return NextResponse.json(
       {
-        error:
-          "Compiler service is unreachable. Run `pnpm dev` and ensure apps/compiler is listening.",
-        detail: (err as Error).message,
+        error: "Compiler service is temporarily unavailable",
       },
       { status: 502 },
     )

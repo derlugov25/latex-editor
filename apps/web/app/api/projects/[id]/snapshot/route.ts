@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@workspace/supabase/server"
-import { updateProject } from "@workspace/supabase/projects"
+import { getProject, updateProject } from "@workspace/supabase/projects"
 
 interface Body {
   latex_content?: string
@@ -19,6 +19,11 @@ export async function PUT(
   const { data: user } = await supabase.auth.getUser()
   if (!user.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const project = await getProject(supabase, id)
+  if (!project) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
   try {

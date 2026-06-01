@@ -14,6 +14,11 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  const project = await getProject(supabase, id)
+  if (!project || project.owner_id !== userData.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
   try {
     const invites = await listInvites(supabase, id)
     return NextResponse.json(invites)
@@ -54,11 +59,16 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id: _id } = await params
+  const { id } = await params
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const project = await getProject(supabase, id)
+  if (!project || project.owner_id !== userData.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
   const body = (await request.json().catch(() => null)) as { inviteId?: string } | null
