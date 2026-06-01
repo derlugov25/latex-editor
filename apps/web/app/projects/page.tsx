@@ -50,10 +50,20 @@ export default async function ProjectsPage() {
         </div>
 
         {ownedProjects.length === 0 ? (
-          <div className="border-muted-foreground/20 grid place-items-center rounded-lg border border-dashed p-12 text-center">
-            <p className="text-muted-foreground text-sm">
-              No projects yet. Click <strong>New project</strong> above.
-            </p>
+          <div className="border-muted-foreground/20 grid place-items-center rounded-xl border border-dashed p-16 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-2xl">
+                <span className="text-2xl font-bold tracking-tight select-none opacity-40">
+                  T<span className="text-lg">e</span>X
+                </span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">No projects yet</p>
+                <p className="text-muted-foreground text-sm">
+                  Click <strong>New project</strong> above to create your first LaTeX document.
+                </p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

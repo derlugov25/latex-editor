@@ -1,14 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { updateSession } from "@workspace/supabase/middleware"
 
-const PUBLIC_PREFIXES = ["/login", "/auth", "/api/liveblocks-auth"]
+const PUBLIC_PREFIXES = ["/login", "/auth", "/api/liveblocks-auth", "/invite"]
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request)
   const { pathname } = request.nextUrl
 
   const isPublic = PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))
-  if (!user && !isPublic && pathname.startsWith("/projects")) {
+  if (!user && !isPublic && (pathname.startsWith("/projects") || pathname.startsWith("/api/"))) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     const redirect = NextResponse.redirect(new URL("/login", request.url))
     for (const cookie of response.cookies.getAll()) {
       redirect.cookies.set(cookie)

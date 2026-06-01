@@ -39,5 +39,7 @@ export function useYjs(): YjsHandle {
     }
   }, [room, doc])
 
+  // provider is always non-null once `ready` is true — callers must
+  // gate on `ready` before touching `provider`.
   return { doc, provider: providerRef.current as LiveblocksYjsProvider, ready }
 }

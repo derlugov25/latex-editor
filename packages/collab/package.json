@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@liveblocks/client": "^2.21.4",
+    "@liveblocks/core": "^2.21.4",
     "@liveblocks/react": "^2.21.4",
     "@liveblocks/yjs": "^2.21.4",
     "y-monaco": "^0.1.6",

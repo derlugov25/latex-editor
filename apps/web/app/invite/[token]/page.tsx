@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { RiLoader4Line, RiTeamLine, RiErrorWarningLine } from "@remixicon/react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -54,46 +56,76 @@ export default function InvitePage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-4">
+    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           {status === "loading" && (
             <>
+              <div className="flex justify-center pb-2">
+                <RiLoader4Line className="text-primary size-8 animate-spin" />
+              </div>
               <CardTitle>Loading invite...</CardTitle>
               <CardDescription>Please wait</CardDescription>
             </>
           )}
           {status === "ready" && (
             <>
+              <div className="flex justify-center pb-2">
+                <div className="bg-primary/10 flex size-14 items-center justify-center rounded-2xl">
+                  <RiTeamLine className="text-primary size-7" />
+                </div>
+              </div>
               <CardTitle>Join project</CardTitle>
               <CardDescription>
-                You have been invited to collaborate on <strong>{projectName}</strong>
+                You have been invited to collaborate on
               </CardDescription>
-              <div className="pt-4">
-                <Button onClick={handleJoin} className="w-full">
-                  Join project
-                </Button>
-              </div>
             </>
           )}
           {status === "joining" && (
             <>
+              <div className="flex justify-center pb-2">
+                <RiLoader4Line className="text-primary size-8 animate-spin" />
+              </div>
               <CardTitle>Joining...</CardTitle>
               <CardDescription>Setting up access</CardDescription>
             </>
           )}
           {status === "error" && (
             <>
-              <CardTitle>Error</CardTitle>
-              <CardDescription className="text-destructive">{error}</CardDescription>
-              <div className="pt-4">
-                <Button variant="outline" onClick={() => router.push("/projects")}>
-                  Go to projects
-                </Button>
+              <div className="flex justify-center pb-2">
+                <div className="bg-destructive/10 flex size-14 items-center justify-center rounded-2xl">
+                  <RiErrorWarningLine className="text-destructive size-7" />
+                </div>
               </div>
+              <CardTitle>Something went wrong</CardTitle>
+              <CardDescription className="text-destructive">{error}</CardDescription>
             </>
           )}
         </CardHeader>
+
+        {status === "ready" && (
+          <CardContent className="space-y-4 text-center">
+            <div className="bg-muted/50 rounded-lg px-4 py-3">
+              <p className="text-base font-semibold">{projectName}</p>
+            </div>
+            <Button onClick={handleJoin} className="w-full" size="lg">
+              <RiTeamLine className="size-4" />
+              Join project
+            </Button>
+          </CardContent>
+        )}
+
+        {status === "error" && (
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => router.push("/projects")}
+              className="w-full"
+            >
+              Go to projects
+            </Button>
+          </CardContent>
+        )}
       </Card>
     </div>
   )

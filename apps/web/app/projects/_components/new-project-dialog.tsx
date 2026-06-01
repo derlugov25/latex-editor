@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useFormStatus } from "react-dom"
-import { RiAddLine } from "@remixicon/react"
+import { RiAddLine, RiLoader4Line } from "@remixicon/react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -64,7 +64,17 @@ function SubmitButton() {
   const { pending } = useFormStatus()
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Creating…" : "Create"}
+      {pending ? (
+        <>
+          <RiLoader4Line className="size-4 animate-spin" />
+          Creating...
+        </>
+      ) : (
+        <>
+          <RiAddLine className="size-4" />
+          Create project
+        </>
+      )}
     </Button>
   )
 }

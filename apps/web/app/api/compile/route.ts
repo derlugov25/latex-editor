@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { createClient } from "@workspace/supabase/server"
 
 /** Server-side compiler URL (not exposed to the browser). */
 function compilerServiceUrl(): string {
@@ -14,6 +15,12 @@ function compilerServiceUrl(): string {
  * Avoids cross-origin fetch issues (e.g. Cursor's embedded browser blocking :3001).
  */
 export async function POST(request: Request) {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const body = await request.text()
   let upstream: Response
   try {

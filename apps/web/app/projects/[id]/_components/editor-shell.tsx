@@ -81,8 +81,9 @@ export function EditorShell({ project, compilerUrl, isOwner }: EditorShellProps)
               </div>
             </>
           ) : (
-            <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-              Loading document…
+            <div className="flex h-full flex-col items-center justify-center gap-3">
+              <div className="border-primary size-5 animate-spin rounded-full border-2 border-t-transparent" />
+              <span className="text-muted-foreground text-sm">Loading document...</span>
             </div>
           )}
         </ResizablePanel>
@@ -92,6 +93,7 @@ export function EditorShell({ project, compilerUrl, isOwner }: EditorShellProps)
             pdfUrl={compile.pdfUrl}
             error={compile.error}
             log={compile.log}
+            isCompiling={compile.isCompiling}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

@@ -16,6 +16,8 @@ interface UserInfo {
   color?: string
 }
 
+const MAX_VISIBLE = 5
+
 export function PresenceAvatars() {
   const others = useOthers()
   const self = useSelf()
@@ -38,15 +40,18 @@ export function PresenceAvatars() {
 
   if (items.length === 0) return null
 
+  const visible = items.slice(0, MAX_VISIBLE)
+  const overflow = items.length - MAX_VISIBLE
+
   return (
     <div className="flex items-center -space-x-2">
-      {items.slice(0, 5).map(({ id, info, you }) => {
+      {visible.map(({ id, info, you }) => {
         const name = info.name ?? "User"
         const color = info.color ?? "#64748b"
         return (
           <Tooltip key={id}>
             <TooltipTrigger asChild>
-              <Avatar className="border-background size-7 border-2">
+              <Avatar className="border-background ring-background size-7 border-2 transition-transform hover:z-10 hover:scale-110">
                 <AvatarFallback
                   style={{ backgroundColor: color }}
                   className="text-xs font-medium text-white"
@@ -62,6 +67,20 @@ export function PresenceAvatars() {
           </Tooltip>
         )
       })}
+      {overflow > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Avatar className="border-background size-7 border-2">
+              <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-medium">
+                +{overflow}
+              </AvatarFallback>
+            </Avatar>
+          </TooltipTrigger>
+          <TooltipContent>
+            {overflow} more collaborator{overflow === 1 ? "" : "s"}
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   )
 }
