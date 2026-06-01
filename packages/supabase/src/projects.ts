@@ -8,6 +8,10 @@ import type {
 
 type Client = SupabaseClient<Database>
 
+/**
+ * List all projects accessible to the current user (owned + shared).
+ * With the updated RLS policies, a simple select("*") returns both.
+ */
 export async function listProjects(supabase: Client): Promise<ProjectRow[]> {
   const { data, error } = await supabase
     .from("projects")

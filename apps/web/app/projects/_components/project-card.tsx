@@ -18,7 +18,13 @@ import {
 import type { ProjectRow } from "@workspace/supabase/types"
 import { deleteProjectAction } from "../actions"
 
-export function ProjectCard({ project }: { project: ProjectRow }) {
+export function ProjectCard({
+  project,
+  isShared,
+}: {
+  project: ProjectRow
+  isShared?: boolean
+}) {
   const updated = new Date(project.updated_at).toLocaleString()
 
   return (
@@ -32,34 +38,39 @@ export function ProjectCard({ project }: { project: ProjectRow }) {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <CardTitle className="truncate">{project.name}</CardTitle>
-            <CardDescription>Updated {updated}</CardDescription>
+            <CardDescription>
+              {isShared && <span className="text-primary mr-1">Shared</span>}
+              Updated {updated}
+            </CardDescription>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => e.stopPropagation()}
-                className="pointer-events-auto relative z-20"
-              >
-                <RiMoreLine className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <form action={deleteProjectAction}>
-                <input type="hidden" name="id" value={project.id} />
-                <DropdownMenuItem asChild>
-                  <button
-                    type="submit"
-                    className="text-destructive flex w-full items-center gap-2"
-                  >
-                    <RiDeleteBin6Line className="size-4" />
-                    Delete
-                  </button>
-                </DropdownMenuItem>
-              </form>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {!isShared && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => e.stopPropagation()}
+                  className="pointer-events-auto relative z-20"
+                >
+                  <RiMoreLine className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <form action={deleteProjectAction}>
+                  <input type="hidden" name="id" value={project.id} />
+                  <DropdownMenuItem asChild>
+                    <button
+                      type="submit"
+                      className="text-destructive flex w-full items-center gap-2"
+                    >
+                      <RiDeleteBin6Line className="size-4" />
+                      Delete
+                    </button>
+                  </DropdownMenuItem>
+                </form>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </CardHeader>
     </Card>

@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { RiFileTextLine, RiPlayLine } from "@remixicon/react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -16,6 +17,7 @@ interface EditorToolbarProps {
   onTabChange(tab: "latex" | "bibtex"): void
   onCompile(): void
   isCompiling: boolean
+  shareSlot?: ReactNode
 }
 
 export function EditorToolbar({
@@ -24,6 +26,7 @@ export function EditorToolbar({
   onTabChange,
   onCompile,
   isCompiling,
+  shareSlot,
 }: EditorToolbarProps) {
   return (
     <div className="flex items-center gap-3 border-b px-4 py-2">
@@ -46,6 +49,7 @@ export function EditorToolbar({
 
       <div className="ml-auto flex items-center gap-3">
         <PresenceAvatars />
+        {shareSlot}
         <Button onClick={onCompile} disabled={isCompiling} size="sm">
           <RiPlayLine className="size-4" />
           {isCompiling ? "Compiling…" : "Compile"}

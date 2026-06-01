@@ -7,15 +7,16 @@ import { EditorShell } from "./editor-shell"
 interface EditorPageProps {
   project: ProjectRow
   compilerUrl: string
+  isOwner: boolean
 }
 
-export function EditorPage({ project, compilerUrl }: EditorPageProps) {
+export function EditorPage({ project, compilerUrl, isOwner }: EditorPageProps) {
   return (
     <CollabRoom
       roomId={`project:${project.id}`}
       fallback={<RoomFallback />}
     >
-      <EditorShell project={project} compilerUrl={compilerUrl} />
+      <EditorShell project={project} compilerUrl={compilerUrl} isOwner={isOwner} />
     </CollabRoom>
   )
 }

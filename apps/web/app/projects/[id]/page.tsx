@@ -15,10 +15,12 @@ export default async function ProjectPage({
   const project = await getProject(supabase, id)
   if (!project) notFound()
 
+  const isOwner = project.owner_id === user.id
+
   return (
     <div className="flex h-svh flex-col">
       <AppHeader email={user.email ?? null} />
-      <EditorPage project={project} compilerUrl={compilerUrl} />
+      <EditorPage project={project} compilerUrl={compilerUrl} isOwner={isOwner} />
     </div>
   )
 }

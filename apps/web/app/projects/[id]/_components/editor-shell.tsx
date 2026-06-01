@@ -11,6 +11,7 @@ import {
 import type { ProjectRow } from "@workspace/supabase/types"
 import { EditorToolbar } from "./editor-toolbar"
 import { PdfPreview } from "./pdf-preview"
+import { ShareDialog } from "./share-dialog"
 import { useCollabDoc } from "./use-collab-doc"
 import { useCompile } from "./use-compile"
 import { useSnapshot } from "./use-snapshot"
@@ -18,9 +19,10 @@ import { useSnapshot } from "./use-snapshot"
 interface EditorShellProps {
   project: ProjectRow
   compilerUrl: string
+  isOwner: boolean
 }
 
-export function EditorShell({ project, compilerUrl }: EditorShellProps) {
+export function EditorShell({ project, compilerUrl, isOwner }: EditorShellProps) {
   const [tab, setTab] = useState<"latex" | "bibtex">("latex")
   const { resolvedTheme } = useTheme()
   const monacoTheme = resolvedTheme === "light" ? "light" : "vs-dark"
@@ -54,6 +56,7 @@ export function EditorShell({ project, compilerUrl }: EditorShellProps) {
         onTabChange={setTab}
         onCompile={handleCompile}
         isCompiling={compile.isCompiling}
+        shareSlot={<ShareDialog projectId={project.id} isOwner={isOwner} />}
       />
       <ResizablePanelGroup orientation="horizontal" className="flex-1">
         <ResizablePanel defaultSize={55} minSize={30}>

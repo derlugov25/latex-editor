@@ -34,4 +34,8 @@ Keys can be created and rotated under **Settings → API Keys** in the Supabase 
 
 ## Schema
 
-Apply `sql/001_projects.sql` in the Supabase SQL editor (or via `supabase db push`). It creates `public.projects` with RLS scoped to the authenticated owner, and triggers for `owner_id` defaulting and `updated_at` bumping.
+Apply migrations in order via the Supabase SQL editor (or `supabase db push`):
+
+1. `sql/001_projects.sql` — `public.projects` with owner-scoped RLS.
+2. `sql/002_collaboration.sql` — members, invites, and shared-project policies (required for the Share dialog).
+3. `sql/003_fix_rls_recursion.sql` — only if you applied an older `002` and get error **42P17** on `/projects`.
