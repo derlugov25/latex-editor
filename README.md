@@ -49,5 +49,19 @@ import { Button } from "@workspace/ui/components/button"
 
 ## Deployment
 
-- **apps/web → Vercel.** Set the env vars in the project settings and point at this repo with the root set to `apps/web`.
-- **apps/compiler → any container host** (Fly.io / Render / Railway). Build with `apps/compiler/Dockerfile` — TeX Live is baked into the image. Point the web app at the deployed URL via `NEXT_PUBLIC_COMPILER_URL`.
+- **apps/web → Vercel.** Import the repository as a Turborepo project with
+  `apps/web` as the Root Directory. Configure the Supabase and Liveblocks
+  variables, plus the server-only `COMPILER_URL` and `COMPILER_API_KEY`. Leave
+  `NEXT_PUBLIC_COMPILER_URL` empty so compilation is proxied through the
+  authenticated Next.js route.
+- **apps/compiler → Google Cloud Run.** TeX Live is baked into
+  `apps/compiler/Dockerfile`. Deploy through Cloud Build and Artifact Registry:
+  ```bash
+  export GOOGLE_CLOUD_PROJECT=your-project-id
+  export COMPILER_API_KEY="$(openssl rand -hex 32)"
+  ./scripts/deploy-compiler-cloud-run.sh
+  ```
+  The script deploys in `europe-west3` by default with 1 vCPU, 2 GiB RAM,
+  concurrency 1, a 300-second request timeout, and scale-to-zero. It versions
+  the bearer token in Google Secret Manager and grants the Cloud Run runtime
+  service account access to that secret.

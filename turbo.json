@@ -1,6 +1,17 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "COMPILER_API_KEY",
+    "COMPILER_URL",
+    "LIVEBLOCKS_SECRET_KEY",
+    "NEXT_PUBLIC_COMPILER_URL",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "SUPABASE_SECRET_KEY",
+    "TEST_USER_EMAIL",
+    "TEST_USER_PASSWORD"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@workspace/supabase/server"
 
+export const maxDuration = 300
+
 /** Server-side compiler URL (not exposed to the browser). */
 function compilerServiceUrl(): string {
   return (
@@ -22,19 +24,26 @@ export async function POST(request: Request) {
   }
 
   const body = await request.text()
+  const compilerApiKey = process.env.COMPILER_API_KEY
   let upstream: Response
   try {
     upstream = await fetch(`${compilerServiceUrl()}/api/compile`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(compilerApiKey
+          ? { Authorization: `Bearer ${compilerApiKey}` }
+          : {}),
+      },
       body,
+      signal: AbortSignal.timeout(290_000),
     })
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       {
         error: "Compiler service is temporarily unavailable",
       },
-      { status: 502 },
+      { status: 502 }
     )
   }
 

@@ -1,5 +1,6 @@
 "use server"
 
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@workspace/supabase/server"
 
@@ -10,7 +11,7 @@ export interface AuthFormState {
 
 export async function signInAction(
   _prev: AuthFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim()
   const password = String(formData.get("password") ?? "")
@@ -24,14 +25,20 @@ export async function signInAction(
 
 export async function signUpAction(
   _prev: AuthFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim()
   const password = String(formData.get("password") ?? "")
   if (!email || !password) return { error: "Email and password are required" }
 
   const supabase = await createClient()
-  const { data, error } = await supabase.auth.signUp({ email, password })
+  const headerList = await headers()
+  const origin = headerList.get("origin") ?? `https://${headerList.get("host")}`
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${origin}/auth/callback` },
+  })
   if (error) return { error: error.message }
   if (data.session) redirect("/projects")
   return { notice: "Check your email to confirm the account." }
@@ -66,4 +73,3 @@ export async function signInAsTestUserAction(): Promise<AuthFormState> {
   }
   redirect("/projects")
 }
-

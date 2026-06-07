@@ -1,0 +1,51 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - --tag
+      - ${_IMAGE}
+      - --file
+      - apps/compiler/Dockerfile
+      - .
+  - name: gcr.io/cloud-builders/docker
+    id: verify-tex-engines
+    waitFor:
+      - build
+    args:
+      - run
+      - --rm
+      - --entrypoint
+      - sh
+      - ${_IMAGE}
+      - -c
+      - |
+        set -eu
+        pdflatex --version >/dev/null
+        xelatex --version >/dev/null
+        lualatex --version >/dev/null
+        ln -s /opt/compiler-fonts /tmp/compiler-fonts
+        printf '%s\n' \
+          '\documentclass{article}' \
+          '\usepackage{fontspec}' \
+          '\setmainfont{texgyretermes}[' \
+          '  Path=compiler-fonts/,' \
+          '  Extension=.otf,' \
+          '  UprightFont=*-regular,' \
+          '  BoldFont=*-bold,' \
+          '  ItalicFont=*-italic,' \
+          '  BoldItalicFont=*-bolditalic' \
+          ']' \
+          '\begin{document}Font smoke test.\end{document}' \
+          > /tmp/font-test.tex
+        cd /tmp
+        env openin_any=p openout_any=p shell_escape=f \
+          xelatex -interaction=nonstopmode -halt-on-error -no-shell-escape \
+          font-test.tex >/dev/null
+        env openin_any=p openout_any=p shell_escape=f \
+          lualatex -interaction=nonstopmode -halt-on-error -no-shell-escape \
+          font-test.tex >/dev/null
+images:
+  - ${_IMAGE}
+options:
+  logging: CLOUD_LOGGING_ONLY

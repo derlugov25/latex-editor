@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import { mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -13,6 +13,11 @@ export interface Workdir {
 export async function createWorkdir(): Promise<Workdir> {
   const path = join(tmpdir(), `latex-compile-${randomUUID()}`)
   await mkdir(path, { recursive: true })
+  await symlink(
+    "/opt/compiler-fonts",
+    join(path, "compiler-fonts"),
+    "dir"
+  ).catch(() => {})
 
   return {
     path,
