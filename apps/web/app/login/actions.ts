@@ -73,3 +73,44 @@ export async function signInAsTestUserAction(): Promise<AuthFormState> {
   }
   redirect("/projects")
 }
+
+/**
+ * Public demo accounts for one-click login (e.g. coursework review / demos).
+ * The credentials are intentionally shared and pre-seeded in Supabase with the
+ * email already confirmed — anyone visiting the site can sign in as them. They
+ * stay server-side: this is a "use server" module, so these values are never
+ * bundled into the browser. Remove the demo buttons and delete these accounts
+ * before any real production use.
+ */
+const DEMO_ACCOUNTS: {
+  id: string
+  name: string
+  email: string
+  password: string
+}[] = [
+  {
+    id: "alice",
+    name: "Alice",
+    email: "demo.alice@example.com",
+    password: "Demo-Alice-2026",
+  },
+  {
+    id: "bob",
+    name: "Bob",
+    email: "demo.bob@example.com",
+    password: "Demo-Bob-2026",
+  },
+]
+
+export async function signInAsDemoAction(id: string): Promise<AuthFormState> {
+  const account = DEMO_ACCOUNTS.find((a) => a.id === id)
+  if (!account) return { error: "Unknown demo account" }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signInWithPassword({
+    email: account.email,
+    password: account.password,
+  })
+  if (error) return { error: error.message }
+  redirect("/projects")
+}

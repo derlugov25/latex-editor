@@ -9,6 +9,7 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { getOptionalUser } from "@/lib/auth"
 import { AuthForm } from "./_components/auth-form"
+import { DemoButtons } from "./_components/demo-buttons"
 import { TestUserButton } from "./_components/test-user-button"
 
 export default async function LoginPage() {
@@ -40,6 +41,13 @@ export default async function LoginPage() {
           </CardHeader>
           <CardContent className="grid gap-4">
             <AuthForm />
+            <div className="relative">
+              <Separator />
+              <span className="bg-card text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 text-xs uppercase tracking-wide">
+                demo accounts
+              </span>
+            </div>
+            <DemoButtons />
             {showTestButton ? (
               <>
                 <div className="relative">
