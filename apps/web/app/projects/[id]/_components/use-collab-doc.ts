@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import type * as Monaco from "monaco-editor"
+import { attachRemoteCursorStyles } from "@workspace/collab/cursor-styles"
 import { bindMonacoToYjs, type MonacoBindingHandle } from "@workspace/collab/monaco-binding"
+import { useSelf } from "@workspace/collab/room"
 import { useYjs, type YjsHandle } from "@workspace/collab/yjs"
 
 interface UseCollabDocOptions {
@@ -27,6 +29,13 @@ export interface CollabDoc {
  */
 export function useCollabDoc(options: UseCollabDocOptions): CollabDoc {
   const yjs = useYjs()
+  // Subscribe ONLY to our auth-time identity (name/color), not the whole self
+  // object. `self` gets a new reference on every presence/cursor update, so
+  // depending on it while also writing presence below would loop forever
+  // (React "Maximum update depth exceeded", #185). `info` is stable per session.
+  const userInfo = useSelf(
+    (me) => (me.info ?? null) as { name?: string; color?: string } | null,
+  )
   const latexText = useMemo(() => yjs.doc.getText("latex"), [yjs.doc])
   const bibtexText = useMemo(() => yjs.doc.getText("bibtex"), [yjs.doc])
 
@@ -59,6 +68,24 @@ export function useCollabDoc(options: UseCollabDocOptions): CollabDoc {
       bibtexText.unobserve(onBibtex)
     }
   }, [yjs.ready, yjs.doc, latexText, bibtexText, options.seedLatex, options.seedBibtex])
+
+  // Render every peer's caret in their own color with their name. y-monaco
+  // emits the decoration classes; this keeps the matching styles in sync.
+  useEffect(() => {
+    if (!yjs.ready) return
+    return attachRemoteCursorStyles(yjs.provider.awareness)
+  }, [yjs.ready, yjs.provider])
+
+  // Publish our identity into the Yjs awareness channel so peers can label and
+  // color our caret. Keyed on the primitive name/color so it runs once those
+  // resolve — never on our own cursor moves.
+  useEffect(() => {
+    if (!yjs.ready) return
+    yjs.provider.awareness.setLocalStateField("user", {
+      name: userInfo?.name ?? "Anonymous",
+      color: userInfo?.color ?? "#64748b",
+    })
+  }, [yjs.ready, yjs.provider, userInfo?.name, userInfo?.color])
 
   const latexBinding = useRef<MonacoBindingHandle | null>(null)
   const bibtexBinding = useRef<MonacoBindingHandle | null>(null)

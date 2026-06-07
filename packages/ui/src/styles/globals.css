@@ -130,3 +130,43 @@
     cursor: pointer;
     }
 }
+
+/* ── Remote collaborator cursors (y-monaco awareness) ──────────────────────
+   y-monaco tags each peer's selection/caret with the classes
+   `yRemoteSelection-<id>` and `yRemoteSelectionHead-<id>` but applies no color
+   or label itself. Per-peer color + name arrive at runtime as the `--yc` /
+   `--yc-name` custom properties injected by collab/src/cursor-styles.ts.
+   Kept unlayered so Monaco's own decoration styles never win over them. */
+.yRemoteSelection {
+  background-color: color-mix(in srgb, var(--yc, #64748b) 30%, transparent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.yRemoteSelectionHead {
+  position: absolute;
+  box-sizing: border-box;
+  height: 100%;
+  border-left: 2px solid var(--yc, #64748b);
+  pointer-events: none;
+}
+
+.yRemoteSelectionHead::after {
+  content: var(--yc-name, "");
+  position: absolute;
+  bottom: 100%;
+  left: -2px;
+  padding: 0 4px 1px;
+  border-radius: 4px 4px 4px 0;
+  background-color: var(--yc, #64748b);
+  color: #fff;
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  z-index: 20;
+}
