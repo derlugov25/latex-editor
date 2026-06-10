@@ -16,6 +16,7 @@ import {
   signUpAction,
   type AuthFormState,
 } from "../actions"
+import { USERNAME_RULE_HINT } from "@/lib/username"
 
 const INITIAL: AuthFormState = {}
 
@@ -27,10 +28,14 @@ export function AuthForm() {
         <TabsTrigger value="signup">Create account</TabsTrigger>
       </TabsList>
       <TabsContent value="signin" className="pt-4">
-        <AuthFields action={signInAction} submitLabel="Sign in" />
+        <AuthFields action={signInAction} submitLabel="Sign in" mode="signin" />
       </TabsContent>
       <TabsContent value="signup" className="pt-4">
-        <AuthFields action={signUpAction} submitLabel="Create account" />
+        <AuthFields
+          action={signUpAction}
+          submitLabel="Create account"
+          mode="signup"
+        />
       </TabsContent>
     </Tabs>
   )
@@ -39,30 +44,40 @@ export function AuthForm() {
 interface AuthFieldsProps {
   action: (state: AuthFormState, formData: FormData) => Promise<AuthFormState>
   submitLabel: string
+  mode: "signin" | "signup"
 }
 
-function AuthFields({ action, submitLabel }: AuthFieldsProps) {
+function AuthFields({ action, submitLabel, mode }: AuthFieldsProps) {
   const [state, dispatch] = useActionState(action, INITIAL)
+  const isSignup = mode === "signup"
   return (
     <form action={dispatch} className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor={`${mode}-username`}>
+          {isSignup ? "Username" : "Username or email"}
+        </Label>
         <Input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
+          id={`${mode}-username`}
+          name={isSignup ? "username" : "identifier"}
+          type="text"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           required
-          placeholder="you@example.com"
+          placeholder={isSignup ? "e.g. alice" : "alice or you@example.com"}
         />
+        {isSignup ? (
+          <p className="text-muted-foreground text-xs">{USERNAME_RULE_HINT}</p>
+        ) : null}
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor={`${mode}-password`}>Password</Label>
         <Input
-          id="password"
+          id={`${mode}-password`}
           name="password"
           type="password"
-          autoComplete="current-password"
+          autoComplete={isSignup ? "new-password" : "current-password"}
           minLength={6}
           required
         />

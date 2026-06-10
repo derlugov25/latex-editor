@@ -1,8 +1,13 @@
 "use server"
 
-import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@workspace/supabase/server"
+import { createAdminClient } from "@workspace/supabase/admin"
+import {
+  identifierToEmail,
+  normalizeUsername,
+  USERNAME_RULE_HINT,
+} from "@/lib/username"
 
 export interface AuthFormState {
   error?: string
@@ -13,13 +18,18 @@ export async function signInAction(
   _prev: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  const email = String(formData.get("email") ?? "").trim()
+  const identifier = String(formData.get("identifier") ?? "")
   const password = String(formData.get("password") ?? "")
-  if (!email || !password) return { error: "Email and password are required" }
+  if (!identifier.trim() || !password) {
+    return { error: "Username and password are required." }
+  }
+
+  const email = identifierToEmail(identifier)
+  if (!email) return { error: `Invalid username. ${USERNAME_RULE_HINT}` }
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) return { error: error.message }
+  if (error) return { error: "Invalid username or password." }
   redirect("/projects")
 }
 
@@ -27,21 +37,61 @@ export async function signUpAction(
   _prev: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  const email = String(formData.get("email") ?? "").trim()
+  const rawUsername = String(formData.get("username") ?? "")
   const password = String(formData.get("password") ?? "")
-  if (!email || !password) return { error: "Email and password are required" }
 
-  const supabase = await createClient()
-  const headerList = await headers()
-  const origin = headerList.get("origin") ?? `https://${headerList.get("host")}`
-  const { data, error } = await supabase.auth.signUp({
-    email,
+  const normalized = normalizeUsername(rawUsername)
+  if (!normalized) return { error: `Invalid username. ${USERNAME_RULE_HINT}` }
+  if (password.length < 6) {
+    return { error: "Password must be at least 6 characters." }
+  }
+
+  // Create an already-confirmed account through the admin API. This sends no
+  // email at all, so Supabase's built-in email rate limits never apply and
+  // sign-up works reliably during a live demo. Requires SUPABASE_SECRET_KEY.
+  let admin: ReturnType<typeof createAdminClient>
+  try {
+    admin = createAdminClient()
+  } catch {
+    return {
+      error: "Sign-up is unavailable: the server is missing SUPABASE_SECRET_KEY.",
+    }
+  }
+
+  const { error: createError } = await admin.auth.admin.createUser({
+    email: normalized.email,
     password,
-    options: { emailRedirectTo: `${origin}/auth/callback` },
+    email_confirm: true,
+    user_metadata: { name: rawUsername.trim(), username: normalized.canonical },
   })
-  if (error) return { error: error.message }
-  if (data.session) redirect("/projects")
-  return { notice: "Check your email to confirm the account." }
+  if (createError) {
+    if (isUsernameTakenError(createError)) {
+      return { error: "That username is already taken." }
+    }
+    return { error: createError.message }
+  }
+
+  // Establish the auth-cookie session for the freshly created account.
+  const supabase = await createClient()
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: normalized.email,
+    password,
+  })
+  if (signInError) return { error: signInError.message }
+  redirect("/projects")
+}
+
+/** True when admin.createUser failed because the username/email already exists. */
+function isUsernameTakenError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false
+  const code = "code" in err ? String((err as { code: unknown }).code) : ""
+  const message =
+    "message" in err ? String((err as { message: unknown }).message) : ""
+  return (
+    code === "email_exists" ||
+    code === "user_already_exists" ||
+    /already.*(registered|exists)/i.test(message)
+  )
 }
 
 export async function signOutAction() {
