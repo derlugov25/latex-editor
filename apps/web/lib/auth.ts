@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import type { User } from "@supabase/supabase-js"
 import { createClient } from "@workspace/supabase/server"
 
 /** Resolve the current Supabase user, or redirect to `/login` if there is none. */
@@ -14,4 +15,15 @@ export async function getOptionalUser() {
   const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
   return data.user ?? null
+}
+
+/**
+ * Human-facing account label. Username accounts get their username
+ * (stored in user_metadata.name) instead of the synthetic
+ * `…@kursach.local` address; email accounts fall back to the email.
+ */
+export function userDisplayName(user: User): string | null {
+  const name = user.user_metadata?.name
+  if (typeof name === "string" && name.trim()) return name.trim()
+  return user.email ?? null
 }

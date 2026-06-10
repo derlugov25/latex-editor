@@ -1,5 +1,5 @@
 import { listProjects } from "@workspace/supabase/projects"
-import { requireUser } from "@/lib/auth"
+import { requireUser, userDisplayName } from "@/lib/auth"
 import {
   isMissingSchemaError,
   isRlsRecursionError,
@@ -35,7 +35,7 @@ export default async function ProjectsPage() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <AppHeader email={user.email ?? null} />
+      <AppHeader email={userDisplayName(user)} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>

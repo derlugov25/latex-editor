@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { getProject } from "@workspace/supabase/projects"
 import { compilerUrl } from "@/lib/env"
-import { requireUser } from "@/lib/auth"
+import { requireUser, userDisplayName } from "@/lib/auth"
 import { AppHeader } from "../_components/header"
 import { EditorPage } from "./_components/editor-page"
 
@@ -19,7 +19,7 @@ export default async function ProjectPage({
 
   return (
     <div className="flex h-svh flex-col">
-      <AppHeader email={user.email ?? null} />
+      <AppHeader email={userDisplayName(user)} />
       <EditorPage project={project} compilerUrl={compilerUrl} isOwner={isOwner} />
     </div>
   )
