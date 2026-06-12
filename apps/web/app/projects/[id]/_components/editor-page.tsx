@@ -2,21 +2,30 @@
 
 import { CollabRoom } from "@workspace/collab/room"
 import type { ProjectRow } from "@workspace/supabase/types"
+import type { FileSeed } from "@/lib/project-files"
 import { EditorShell } from "./editor-shell"
 
 interface EditorPageProps {
   project: ProjectRow
+  seedFiles: FileSeed[]
   compilerUrl: string
   isOwner: boolean
 }
 
-export function EditorPage({ project, compilerUrl, isOwner }: EditorPageProps) {
+export function EditorPage({
+  project,
+  seedFiles,
+  compilerUrl,
+  isOwner,
+}: EditorPageProps) {
   return (
-    <CollabRoom
-      roomId={`project:${project.id}`}
-      fallback={<RoomFallback />}
-    >
-      <EditorShell project={project} compilerUrl={compilerUrl} isOwner={isOwner} />
+    <CollabRoom roomId={`project:${project.id}`} fallback={<RoomFallback />}>
+      <EditorShell
+        project={project}
+        seedFiles={seedFiles}
+        compilerUrl={compilerUrl}
+        isOwner={isOwner}
+      />
     </CollabRoom>
   )
 }

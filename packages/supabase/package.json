@@ -33,6 +33,7 @@
     "./middleware": "./src/middleware.ts",
     "./types": "./src/types.ts",
     "./projects": "./src/projects.ts",
+    "./files": "./src/files.ts",
     "./members": "./src/members.ts",
     "./env": "./src/env.ts"
   }

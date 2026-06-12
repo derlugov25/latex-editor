@@ -8,14 +8,23 @@ import {
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
 import { getOptionalUser } from "@/lib/auth"
+import { vkClientId } from "@/lib/vk-id"
 import { AuthForm } from "./_components/auth-form"
 import { DemoButtons } from "./_components/demo-buttons"
 import { TestUserButton } from "./_components/test-user-button"
+import { VkLoginButton } from "./_components/vk-login-button"
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
   const user = await getOptionalUser()
   if (user) redirect("/projects")
 
+  // Errors from redirect-based flows (VK ID) arrive as a query param.
+  const { error } = await searchParams
+  const showVkButton = Boolean(vkClientId())
   const testEmail = process.env.TEST_USER_EMAIL
   const showTestButton = Boolean(testEmail && process.env.TEST_USER_PASSWORD)
 
@@ -40,7 +49,23 @@ export default async function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
+            {error ? (
+              <p className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm">
+                {error}
+              </p>
+            ) : null}
             <AuthForm />
+            {showVkButton ? (
+              <>
+                <div className="relative">
+                  <Separator />
+                  <span className="bg-card text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 text-xs uppercase tracking-wide">
+                    or
+                  </span>
+                </div>
+                <VkLoginButton />
+              </>
+            ) : null}
             <div className="relative">
               <Separator />
               <span className="bg-card text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 text-xs uppercase tracking-wide">

@@ -7,6 +7,8 @@ SERVICE="${COMPILER_SERVICE_NAME:-latex-compiler}"
 REPOSITORY="${ARTIFACT_REPOSITORY:-latex-editor}"
 SECRET_NAME="${COMPILER_SECRET_NAME:-latex-compiler-api-key}"
 API_KEY="${COMPILER_API_KEY:?Set COMPILER_API_KEY}"
+# Host suffix allowlist for asset downloads (Supabase storage signed URLs).
+ASSET_HOSTS="${COMPILER_ASSET_HOSTS:-eghqqonwcfgcwppmsjnx.supabase.co}"
 IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/compiler:$(date -u +%Y%m%d%H%M%S)"
 
 gcloud services enable \
@@ -80,7 +82,7 @@ gcloud run deploy "$SERVICE" \
   --timeout 300 \
   --max-instances 3 \
   --service-account "$RUNTIME_SERVICE_ACCOUNT" \
-  --set-env-vars "COMPILER_MAX_SOURCE_BYTES=2097152,COMPILER_PASS_TIMEOUT_MS=60000" \
+  --set-env-vars "COMPILER_MAX_SOURCE_BYTES=4194304,COMPILER_PASS_TIMEOUT_MS=60000,COMPILER_RUN_TIMEOUT_MS=180000,COMPILER_ASSET_HOSTS=${ASSET_HOSTS}" \
   --set-secrets "COMPILER_API_KEY=${SECRET_NAME}:${SECRET_VERSION}"
 
 gcloud run services describe "$SERVICE" \

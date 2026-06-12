@@ -24,6 +24,9 @@ steps:
         pdflatex --version >/dev/null
         xelatex --version >/dev/null
         lualatex --version >/dev/null
+        latexmk --version >/dev/null
+        bibtex --version >/dev/null
+        biber --version >/dev/null
         ln -s /opt/compiler-fonts /tmp/compiler-fonts
         printf '%s\n' \
           '\documentclass{article}' \

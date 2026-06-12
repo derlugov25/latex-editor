@@ -1,0 +1,12 @@
+# Keep the working-tree upload small: sources only, no local build output.
+.git
+node_modules
+.next
+.output
+.turbo
+.vercel
+.claude
+coverage
+*.log
+.DS_Store
+.env*

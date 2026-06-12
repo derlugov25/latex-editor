@@ -1,4 +1,4 @@
-import type { CompileError, CompileRequest } from "./types"
+import type { CompileError, CompileRequest, WebCompileRequest } from "./types"
 
 export interface CompileResult {
   /** Object URL pointing to the produced PDF blob. Caller must revoke it. */
@@ -26,7 +26,7 @@ export interface CompileClientOptions {
  * Throws `CompileFailure` with the log on non-2xx responses.
  */
 export async function compileLatex(
-  request: CompileRequest,
+  request: CompileRequest | WebCompileRequest,
   options: CompileClientOptions,
 ): Promise<CompileResult> {
   const response = await fetch(`${options.baseUrl}/api/compile`, {
@@ -49,7 +49,23 @@ async function extractError(response: Response): Promise<CompileError> {
   const contentType = response.headers.get("content-type") ?? ""
   if (contentType.includes("application/json")) {
     try {
-      return (await response.json()) as CompileError
+      const parsed = (await response.json()) as {
+        error?: unknown
+        message?: unknown
+        log?: unknown
+        // Nitro wraps createError({data}) as {error: true, message, data: {...}}.
+        data?: { error?: unknown; log?: unknown }
+      }
+      const error =
+        (typeof parsed.error === "string" && parsed.error) ||
+        (typeof parsed.data?.error === "string" && parsed.data.error) ||
+        (typeof parsed.message === "string" && parsed.message) ||
+        `HTTP ${response.status}`
+      const log =
+        (typeof parsed.log === "string" && parsed.log) ||
+        (typeof parsed.data?.log === "string" && parsed.data.log) ||
+        undefined
+      return { error, log }
     } catch {
       // fall through
     }

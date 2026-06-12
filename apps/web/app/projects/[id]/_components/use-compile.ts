@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import {
   CompileFailure,
   compileLatex,
-  type CompileRequest,
+  type WebCompileRequest,
 } from "@workspace/compiler-client"
 
 interface UseCompileOptions {
@@ -16,7 +16,7 @@ export interface CompileState {
   error: string | null
   log: string | null
   isCompiling: boolean
-  compile(request: CompileRequest): Promise<void>
+  compile(request: WebCompileRequest): Promise<void>
 }
 
 export function useCompile({ compilerUrl }: UseCompileOptions): CompileState {
@@ -31,7 +31,7 @@ export function useCompile({ compilerUrl }: UseCompileOptions): CompileState {
   }, [])
 
   const compile = useCallback(
-    async (request: CompileRequest) => {
+    async (request: WebCompileRequest) => {
       setIsCompiling(true)
       setError(null)
       setLog(null)

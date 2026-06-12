@@ -10,7 +10,8 @@
     "NEXT_PUBLIC_SUPABASE_URL",
     "SUPABASE_SECRET_KEY",
     "TEST_USER_EMAIL",
-    "TEST_USER_PASSWORD"
+    "TEST_USER_PASSWORD",
+    "VK_ID_CLIENT_ID"
   ],
   "tasks": {
     "build": {

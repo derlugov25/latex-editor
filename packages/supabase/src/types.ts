@@ -3,10 +3,14 @@ export type ProjectRow = {
   id: string
   owner_id: string
   name: string
-  /** Latest snapshot of the .tex source. The live edited copy lives in Liveblocks/Yjs. */
+  /** Legacy pre-multi-file snapshot of the .tex source. Migrated into project_files on first open. */
   latex_content: string
-  /** Latest snapshot of the .bib source. Empty string when no bibliography is in use. */
+  /** Legacy pre-multi-file snapshot of the .bib source. Migrated into project_files on first open. */
   bibtex_content: string
+  /** File id (project_files.id) of the root .tex document, null until set. */
+  main_file_id: string | null
+  /** LaTeX engine used for compilation. */
+  engine: string
   created_at: string
   updated_at: string
 }
@@ -17,11 +21,45 @@ export type ProjectInsert = {
   name: string
   latex_content?: string
   bibtex_content?: string
+  main_file_id?: string | null
+  engine?: string
   created_at?: string
   updated_at?: string
 }
 
 export type ProjectUpdate = Partial<ProjectInsert>
+
+/**
+ * One file in a project. `id` doubles as the Yjs Y.Text key in the project's
+ * collaboration room ('latex'/'bibtex' for projects migrated from the legacy
+ * two-column layout, uuid strings otherwise).
+ */
+export type ProjectFileRow = {
+  project_id: string
+  id: string
+  path: string
+  is_binary: boolean
+  /** Latest snapshot for text files; null for binary files (stored in the bucket). */
+  content: string | null
+  size_bytes: number | null
+  mime_type: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type ProjectFileInsert = {
+  project_id: string
+  id: string
+  path: string
+  is_binary?: boolean
+  content?: string | null
+  size_bytes?: number | null
+  mime_type?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
+export type ProjectFileUpdate = Partial<ProjectFileInsert>
 
 export type MemberRole = "editor" | "viewer"
 
@@ -48,6 +86,12 @@ export type Database = {
         Row: ProjectRow
         Insert: ProjectInsert
         Update: ProjectUpdate
+        Relationships: []
+      }
+      project_files: {
+        Row: ProjectFileRow
+        Insert: ProjectFileInsert
+        Update: ProjectFileUpdate
         Relationships: []
       }
       project_members: {

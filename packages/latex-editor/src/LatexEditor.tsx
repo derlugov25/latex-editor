@@ -22,10 +22,16 @@ export interface LatexEditorProps {
   onMount?: OnMount
   height?: string | number
   theme?: "vs-dark" | "light" | (string & {})
-  language?: "latex" | "bibtex"
+  language?: "latex" | "bibtex" | "plaintext"
   completionConfig?: Partial<LatexCompletionConfig>
   /** When provided, populates citation completions for \cite{...}. */
   bibtexContent?: string
+  /**
+   * LaTeX source to harvest \label{...} completions from (e.g. every .tex
+   * file of a multi-file project). When set it replaces the default behavior
+   * of parsing only this editor's own content.
+   */
+  labelsContent?: string
   className?: string
   readOnly?: boolean
   options?: EditorOptions
@@ -62,6 +68,7 @@ export function LatexEditor({
   language = "latex",
   completionConfig,
   bibtexContent,
+  labelsContent,
   className,
   readOnly = false,
   options,
@@ -78,23 +85,27 @@ export function LatexEditor({
       disposerRef.current?.dispose()
       disposerRef.current = setupLatexEditor(monaco, completionConfig)
 
-      if (language === "latex" && value) parseLabelsFromContent(value)
+      if (labelsContent === undefined && language === "latex" && value) {
+        parseLabelsFromContent(value)
+      }
       if (bibtexContent) parseCitationsFromBibtex(bibtexContent)
 
       onMount?.(editor, monaco)
     },
-    [completionConfig, language, value, bibtexContent, onMount],
+    [completionConfig, language, value, bibtexContent, labelsContent, onMount],
   )
 
   const handleChange = useCallback(
     (next: string | undefined) => {
-      if (language === "latex" && next) {
+      // With labelsContent the host supplies labels from the whole project;
+      // reparsing just this file here would wipe the cross-file ones.
+      if (labelsContent === undefined && language === "latex" && next) {
         clearLabels()
         parseLabelsFromContent(next)
       }
       onChange?.(next)
     },
-    [language, onChange],
+    [language, labelsContent, onChange],
   )
 
   useEffect(() => {
@@ -102,6 +113,12 @@ export function LatexEditor({
     clearCitations()
     parseCitationsFromBibtex(bibtexContent)
   }, [bibtexContent])
+
+  useEffect(() => {
+    if (labelsContent === undefined) return
+    clearLabels()
+    parseLabelsFromContent(labelsContent)
+  }, [labelsContent])
 
   useEffect(() => () => disposerRef.current?.dispose(), [])
 
