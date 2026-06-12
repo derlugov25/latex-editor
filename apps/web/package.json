@@ -13,6 +13,7 @@
     "seed:test-user": "node --env-file=.env.local scripts/seed-test-user.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@liveblocks/node": "^2.21.4",
     "@liveblocks/react": "^2.21.4",
     "@liveblocks/yjs": "^2.21.4",

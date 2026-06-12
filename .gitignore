@@ -21,6 +21,9 @@ coverage
 # Vercel
 .vercel
 
+# Claude Code worktrees and local settings
+.claude/
+
 # Build Outputs
 .next/
 .output/
@@ -35,6 +38,3 @@ npm-debug.log*
 # Misc
 .DS_Store
 *.pem
-
-# Claude Code worktrees and local settings
-.claude/

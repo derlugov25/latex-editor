@@ -4,7 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTheme } from "next-themes"
 import { toast } from "sonner"
 import { LatexEditor } from "@workspace/latex-editor"
-import { languageForPath, pathExtension } from "@workspace/compiler-client/paths"
+import {
+  languageForPath,
+  pathExtension,
+} from "@workspace/compiler-client/paths"
 import {
   ResizableHandle,
   ResizablePanel,
@@ -12,6 +15,7 @@ import {
 } from "@workspace/ui/components/resizable"
 import type { ProjectRow } from "@workspace/supabase/types"
 import type { FileSeed } from "@/lib/project-files"
+import { AiChatPanel } from "./ai-chat-panel"
 import { BinaryPreview } from "./binary-preview"
 import { EditorToolbar } from "./editor-toolbar"
 import { FileTree } from "./file-tree"
@@ -90,7 +94,7 @@ export function EditorShell({
     const main =
       doc.files.find((f) => f.id === doc.mainFileId && f.kind === "text") ??
       doc.files.find(
-        (f) => f.kind === "text" && pathExtension(f.path) === "tex",
+        (f) => f.kind === "text" && pathExtension(f.path) === "tex"
       )
     if (!main) {
       toast.error("Add a .tex file to compile")
@@ -118,62 +122,71 @@ export function EditorShell({
         isCompiling={compile.isCompiling}
         shareSlot={<ShareDialog projectId={project.id} isOwner={isOwner} />}
       />
-      <ResizablePanelGroup orientation="horizontal" className="flex-1">
-        {/* react-resizable-panels v4: bare numbers are pixels, percentages need strings */}
-        <ResizablePanel defaultSize="16%" minSize="180px" maxSize="35%">
-          {doc.ready ? (
-            <FileTree
-              files={doc.files}
-              activeFileId={activeFileId}
-              mainFileId={doc.mainFileId}
-              uploading={fileOps.uploading}
-              onOpen={setActiveFileId}
-              onCreateFile={fileOps.createFile}
-              onRename={fileOps.renameFile}
-              onDelete={doc.deleteFile}
-              onSetMain={doc.setMainFile}
-              onUpload={(picked) => void fileOps.uploadFiles(picked)}
-            />
-          ) : (
-            <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
-              Loading files...
-            </div>
-          )}
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel defaultSize="44%" minSize="25%">
-          {doc.ready && activeFile ? (
-            activeFile.kind === "text" ? (
-              <LatexEditor
-                key={activeFile.id}
-                language={languageForPath(activeFile.path)}
-                theme={monacoTheme}
-                bibtexContent={allBibtex}
-                labelsContent={allLatex}
-                onMount={(editor) => doc.bindEditor(editor, activeFile.id)}
+      <div className="relative flex-1 overflow-hidden">
+        <ResizablePanelGroup orientation="horizontal" className="h-full">
+          {/* react-resizable-panels v4: bare numbers are pixels, percentages need strings */}
+          <ResizablePanel defaultSize="16%" minSize="180px" maxSize="35%">
+            {doc.ready ? (
+              <FileTree
+                files={doc.files}
+                activeFileId={activeFileId}
+                mainFileId={doc.mainFileId}
+                uploading={fileOps.uploading}
+                onOpen={setActiveFileId}
+                onCreateFile={fileOps.createFile}
+                onRename={fileOps.renameFile}
+                onDelete={doc.deleteFile}
+                onSetMain={doc.setMainFile}
+                onUpload={(picked) => void fileOps.uploadFiles(picked)}
               />
             ) : (
-              <BinaryPreview projectId={project.id} file={activeFile} />
-            )
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-3">
-              <div className="border-primary size-5 animate-spin rounded-full border-2 border-t-transparent" />
-              <span className="text-muted-foreground text-sm">
-                Loading document...
-              </span>
-            </div>
-          )}
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize="40%" minSize="20%">
-          <PdfPreview
-            pdfUrl={compile.pdfUrl}
-            error={compile.error}
-            log={compile.log}
-            isCompiling={compile.isCompiling}
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                Loading files...
+              </div>
+            )}
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize="44%" minSize="25%">
+            {doc.ready && activeFile ? (
+              activeFile.kind === "text" ? (
+                <LatexEditor
+                  key={activeFile.id}
+                  language={languageForPath(activeFile.path)}
+                  theme={monacoTheme}
+                  bibtexContent={allBibtex}
+                  labelsContent={allLatex}
+                  onMount={(editor) => doc.bindEditor(editor, activeFile.id)}
+                />
+              ) : (
+                <BinaryPreview projectId={project.id} file={activeFile} />
+              )
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center gap-3">
+                <div className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <span className="text-sm text-muted-foreground">
+                  Loading document...
+                </span>
+              </div>
+            )}
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize="40%" minSize="20%">
+            <PdfPreview
+              pdfUrl={compile.pdfUrl}
+              error={compile.error}
+              log={compile.log}
+              isCompiling={compile.isCompiling}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+        {doc.ready ? (
+          <AiChatPanel
+            projectId={project.id}
+            doc={doc}
+            activeFilePath={activeFile?.path ?? null}
           />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+        ) : null}
+      </div>
     </div>
   )
 }

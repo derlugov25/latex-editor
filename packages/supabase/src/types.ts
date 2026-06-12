@@ -114,7 +114,16 @@ export type Database = {
       }
     }
     Views: { [_ in never]: never }
-    Functions: { [_ in never]: never }
+    Functions: {
+      consume_ai_request: {
+        Args: { p_user_id: string; p_limit: number }
+        Returns: { allowed: boolean; used: number }[]
+      }
+      refund_ai_request: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+    }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }
   }

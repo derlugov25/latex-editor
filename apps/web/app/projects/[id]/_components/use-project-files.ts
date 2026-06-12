@@ -6,7 +6,10 @@ import type * as Y from "yjs"
 import { pathExtension } from "@workspace/compiler-client/paths"
 import type { CompileEngine } from "@workspace/compiler-client/types"
 import { attachRemoteCursorStyles } from "@workspace/collab/cursor-styles"
-import { bindMonacoToYjs, type MonacoBindingHandle } from "@workspace/collab/monaco-binding"
+import {
+  bindMonacoToYjs,
+  type MonacoBindingHandle,
+} from "@workspace/collab/monaco-binding"
 import { useSelf } from "@workspace/collab/room"
 import { useYjs } from "@workspace/collab/yjs"
 import type { FileSeed } from "@/lib/project-files"
@@ -50,6 +53,17 @@ export interface ProjectFilesHandle {
   createTextFile(path: string, content?: string): string
   /** Overwrite a text file's whole content (file upload over an existing path). */
   replaceTextContent(fileId: string, content: string): void
+  /**
+   * Replace occurrences of a string in a text file with granular Y.Text ops
+   * (preserves concurrent edits and cursors elsewhere in the file).
+   * Returns false when the string is not present.
+   */
+  applyTextEdit(
+    fileId: string,
+    oldString: string,
+    newString: string,
+    replaceAll: boolean
+  ): boolean
   /** Announce an uploaded binary file to collaborators. */
   registerBinaryFile(entry: ProjectFileEntry): void
   renameFile(fileId: string, newPath: string): void
@@ -76,12 +90,12 @@ function sortedEntries(filesMap: Y.Map<FileMeta>): ProjectFileEntry[] {
 
 function pickDefaultMain(entries: ProjectFileEntry[]): string | null {
   const texFiles = entries.filter(
-    (e) => e.kind === "text" && pathExtension(e.path) === "tex",
+    (e) => e.kind === "text" && pathExtension(e.path) === "tex"
   )
   if (texFiles.length === 0) return null
   return (
     texFiles.find((e) => e.path === "main.tex") ??
-    texFiles.find((e) => !e.path.includes("/"))  ??
+    texFiles.find((e) => !e.path.includes("/")) ??
     texFiles[0]!
   ).id
 }
@@ -94,18 +108,20 @@ function pickDefaultMain(entries: ProjectFileEntry[]): string | null {
  * The Postgres `project_files` rows are only a persistence snapshot; they seed
  * the room once (when the map is empty) and are refreshed via useSnapshot.
  */
-export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHandle {
+export function useProjectFiles(
+  options: UseProjectFilesOptions
+): ProjectFilesHandle {
   const yjs = useYjs()
   // Subscribe only to the stable auth-time identity, not the whole self —
   // see use-collab-doc history (#185) for the feedback-loop hazard.
   const userInfo = useSelf(
-    (me) => (me.info ?? null) as { name?: string; color?: string } | null,
+    (me) => (me.info ?? null) as { name?: string; color?: string } | null
   )
 
   const filesMap = useMemo(() => yjs.doc.getMap<FileMeta>("files"), [yjs.doc])
   const metaMap = useMemo(
     () => yjs.doc.getMap<string | null>("meta"),
-    [yjs.doc],
+    [yjs.doc]
   )
 
   const [seeded, setSeeded] = useState(false)
@@ -151,12 +167,14 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
     const syncTree = () => {
       setFiles(sortedEntries(filesMap))
       const main = metaMap.get("mainFileId")
-      setMainFileId(typeof main === "string" && filesMap.has(main) ? main : null)
+      setMainFileId(
+        typeof main === "string" && filesMap.has(main) ? main : null
+      )
       const eng = metaMap.get("engine")
       setEngineState(
         typeof eng === "string" && VALID_ENGINES.has(eng)
           ? (eng as CompileEngine)
-          : "pdflatex",
+          : "pdflatex"
       )
     }
     const bumpVersion = () => setVersion((v) => v + 1)
@@ -198,7 +216,7 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
       bindingRef.current?.dispose()
       bindingRef.current = null
     },
-    [],
+    []
   )
 
   const createTextFile = useCallback(
@@ -213,7 +231,7 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
       })
       return id
     },
-    [yjs.doc, filesMap, metaMap],
+    [yjs.doc, filesMap, metaMap]
   )
 
   const replaceTextContent = useCallback(
@@ -224,7 +242,37 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
         if (content) text.insert(0, content)
       })
     },
-    [yjs.doc],
+    [yjs.doc]
+  )
+
+  const applyTextEdit = useCallback(
+    (
+      fileId: string,
+      oldString: string,
+      newString: string,
+      replaceAll: boolean
+    ): boolean => {
+      if (oldString.length === 0) return false
+      const text = yjs.doc.getText(fileId)
+      const current = text.toString()
+      const indices: number[] = []
+      let from = current.indexOf(oldString)
+      while (from !== -1) {
+        indices.push(from)
+        if (!replaceAll) break
+        from = current.indexOf(oldString, from + oldString.length)
+      }
+      if (indices.length === 0) return false
+      yjs.doc.transact(() => {
+        // Back to front so earlier indices stay valid.
+        for (const index of indices.reverse()) {
+          text.delete(index, oldString.length)
+          if (newString) text.insert(index, newString)
+        }
+      })
+      return true
+    },
+    [yjs.doc]
   )
 
   const registerBinaryFile = useCallback(
@@ -232,7 +280,7 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
       const { id, ...meta } = entry
       filesMap.set(id, { ...meta, kind: "binary" })
     },
-    [filesMap],
+    [filesMap]
   )
 
   const renameFile = useCallback(
@@ -241,7 +289,7 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
       if (!meta) return
       filesMap.set(fileId, { ...meta, path: newPath })
     },
-    [filesMap],
+    [filesMap]
   )
 
   const deleteFile = useCallback(
@@ -257,26 +305,26 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
         }
       })
     },
-    [yjs.doc, filesMap, metaMap],
+    [yjs.doc, filesMap, metaMap]
   )
 
   const setMainFile = useCallback(
     (fileId: string) => {
       if (filesMap.has(fileId)) metaMap.set("mainFileId", fileId)
     },
-    [filesMap, metaMap],
+    [filesMap, metaMap]
   )
 
   const setEngine = useCallback(
     (next: CompileEngine) => {
       if (VALID_ENGINES.has(next)) metaMap.set("engine", next)
     },
-    [metaMap],
+    [metaMap]
   )
 
   const getText = useCallback(
     (fileId: string) => yjs.doc.getText(fileId).toString(),
-    [yjs.doc],
+    [yjs.doc]
   )
 
   const collectTextFiles = useCallback((): TextFileSnapshot[] => {
@@ -299,7 +347,7 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
         textName: fileId,
       })
     },
-    [yjs.doc, yjs.provider],
+    [yjs.doc, yjs.provider]
   )
 
   return {
@@ -312,6 +360,7 @@ export function useProjectFiles(options: UseProjectFilesOptions): ProjectFilesHa
     setEngine,
     createTextFile,
     replaceTextContent,
+    applyTextEdit,
     registerBinaryFile,
     renameFile,
     deleteFile,
